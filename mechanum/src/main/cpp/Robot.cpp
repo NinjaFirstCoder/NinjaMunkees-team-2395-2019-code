@@ -1,9 +1,8 @@
-
 /*----------------------------------------------------------------------------*/
 /* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
 /* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.            COPY FOR RENAME                                    */
+/* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
 #include "Robot.h"
@@ -16,8 +15,6 @@ void Robot::RobotInit() {
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
-
-  
 }
 
 /**
@@ -66,19 +63,70 @@ void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
 
-  m_drive.DriveCartesian(driveStick.GetX(), driveStick.GetY(), driveStick.GetZ());
-
-  //buttonLifter = driveStick->GetRawButton(1);
+m_drive.DriveCartesian(m_driveStick.GetX(), m_driveStick.GetY(), m_driveStick.GetZ());
 
 
+// Setting up lifter
 
-  if(driveStick.GetRawButton(2)){
-    m_Lifter.Set(1);
+if(m_driveStick.GetRawButton(4)){
 
-  }
+m_Lifter.Set(1);
+
+}
+else if(m_driveStick.GetRawButton(2)){
+
+m_Lifter.Set(-1);
 
 }
 
+else{
+
+m_Lifter.Set(0);
+
+}
+
+//----------------
+
+//elevator
+//system
+//that
+//does
+//stuff
+
+if(m_buttonBoard.GetRawButton(4)){
+
+m_elevator.Set(1);
+
+}
+
+
+//--------------------
+//wrist
+
+
+
+
+
+//---------------------
+//shooter
+
+if(m_driveStick.GetRawButton(5)){
+
+m_shooter.Set(1);
+
+}
+else if(m_driveStick.GetRawButton(6)){
+
+m_shooter.Set(-1);
+
+}
+else{
+
+m_shooter.Set(0);
+
+}
+
+}
 void Robot::TestPeriodic() {}
 
 #ifndef RUNNING_FRC_TESTS

@@ -17,8 +17,6 @@
 #include <frc/Talon.h>
 #include <frc/spark.h>
 
-#include <stdbool.h>
-
 class Robot : public frc::TimedRobot {
  public:
   void RobotInit() override;
@@ -29,23 +27,34 @@ class Robot : public frc::TimedRobot {
   void TeleopPeriodic() override;
   void TestPeriodic() override;
 
+//drive train setup
+
   frc::Spark m_frontLeft{0};
   frc::Spark m_rearLeft{1};
   frc::Spark m_frontRight{2};
   frc::Spark m_rearRight{3};
 
   frc::MecanumDrive m_drive{m_frontLeft, m_rearLeft, m_frontRight, m_rearRight};
-  frc::Joystick driveStick{0};
+  frc::Joystick m_driveStick{0};
 
-bool buttonLifter;
+//lifter setup
+  frc::Spark m_Lifter{5};
 
-	
+//elevator setup
+
+  frc::Spark m_elevator{6};
+  frc::Joystick m_buttonBoard{1};
+
+//wrist setup
+
+  frc::Spark m_wrist{7};
 
 
- frc::Spark m_Lifter{5};
+//shooter setup
 
- 
+  frc::Spark m_shooter{8};
 
+  
 
  private:
   frc::SendableChooser<std::string> m_chooser;
