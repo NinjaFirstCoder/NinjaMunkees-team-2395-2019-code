@@ -14,8 +14,21 @@
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
 
+#include <frc/smartdashboard/SmartDashboard.h>
+
 #include <frc/Talon.h>
 #include <frc/spark.h>
+
+#include <cameraserver/CameraServer.h>
+
+#include <wpi/raw_ostream.h>
+
+#include "rev/CANSparkMax.h"
+
+#include <frc/DigitalInput.h>
+#include <frc/encoder.h>
+#include "ctre/Phoenix.h"
+
 
 class Robot : public frc::TimedRobot {
  public:
@@ -27,7 +40,10 @@ class Robot : public frc::TimedRobot {
   void TeleopPeriodic() override;
   void TestPeriodic() override;
 
-//drive train setup
+
+
+
+//drive train setup-------------------------------------------------
 
   frc::Spark m_frontLeft{0};
   frc::Spark m_rearLeft{1};
@@ -37,22 +53,33 @@ class Robot : public frc::TimedRobot {
   frc::MecanumDrive m_drive{m_frontLeft, m_rearLeft, m_frontRight, m_rearRight};
   frc::Joystick m_driveStick{0};
 
-//lifter setup
-  frc::Spark m_Lifter{5};
+//lifter setup------------------------------------------------
 
-//elevator setup
+  rev::CANSparkMax m_lift1{2, rev::CANSparkMax::MotorType::kBrushless};
+rev::CANEncoder m_lift1E = m_lift1.GetEncoder();
 
-  frc::Spark m_elevator{6};
+rev::CANSparkMax m_lift2{3, rev::CANSparkMax::MotorType::kBrushless};
+rev::CANEncoder m_lift2E = m_lift2.GetEncoder();
+
+//elevator setup---------------------------------------------
+
+rev::CANSparkMax m_elevator{0, rev::CANSparkMax::MotorType::kBrushless};
+rev::CANEncoder m_encoder = m_elevator.GetEncoder();
+
+frc::DigitalInput m_bottomButton{0};
+frc::DigitalInput m_topButton{1};
+  
   frc::Joystick m_buttonBoard{1};
 
-//wrist setup
+bool stateX;
+bool stateY;
+//wrist setup------------------------------------------------------------
 
-  frc::Spark m_wrist{7};
+  TalonSRX * m_wrist = new TalonSRX(1);
+  
+//shooter setup---------------------------------------------------------------
 
-
-//shooter setup
-
-  frc::Spark m_shooter{8};
+  frc::Talon m_shooter{8};
 
   
 
@@ -61,4 +88,7 @@ class Robot : public frc::TimedRobot {
   const std::string kAutoNameDefault = "Default";
   const std::string kAutoNameCustom = "My Auto";
   std::string m_autoSelected;
+
+  
+   
 };
