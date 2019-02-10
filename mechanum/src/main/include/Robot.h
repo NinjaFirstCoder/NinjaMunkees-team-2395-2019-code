@@ -65,6 +65,7 @@ rev::CANEncoder m_lift2E = m_lift2.GetEncoder();
 
 rev::CANSparkMax m_elevator{0, rev::CANSparkMax::MotorType::kBrushless};
 rev::CANEncoder m_encoder = m_elevator.GetEncoder();
+rev::CANPIDController m_pidController = m_elevator.GetPIDController();
 
 frc::DigitalInput m_bottomButton{0};
 frc::DigitalInput m_topButton{1};
@@ -73,15 +74,21 @@ frc::DigitalInput m_topButton{1};
 
 bool stateX;
 bool stateY;
+
 //wrist setup------------------------------------------------------------
 
   TalonSRX * m_wrist = new TalonSRX(1);
   
+  const int CONST_kF = 0;
+  const float CONST_kP = .1;
+  const int CONST_kI = 0;
+  const int CONST_kD = 0;
+  const int Ktimeout = 10;
+
+  double wristPosition = 0;
 //shooter setup---------------------------------------------------------------
 
   frc::Talon m_shooter{8};
-
-  
 
  private:
   frc::SendableChooser<std::string> m_chooser;
