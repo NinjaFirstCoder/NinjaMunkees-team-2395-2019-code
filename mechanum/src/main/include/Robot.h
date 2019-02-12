@@ -68,12 +68,22 @@ class Robot : public frc::TimedRobot {
   // elevator setup
   rev::CANSparkMax elevator{0, rev::CANSparkMax::MotorType::kBrushless};
   rev::CANEncoder elevatorEncoder = elevator.GetEncoder();
-
   frc::DigitalInput elevatorUpperLimitSwitch{0};
   frc::DigitalInput elevatorLowerLimitSwitch{1};
   
   bool stateX;
   bool stateY;
+
+  //PID setup
+  rev::CANPIDController m_pidController = elevator.GetPIDController();
+  
+  double kP = 0.1, 
+    kI = 0, 
+    kD = 1, 
+    kIz = 0, 
+    kFF = 0, 
+    kMaxOutput = 1, 
+    kMinOutput = -1;
 
   // *************************************
   // wrist setup
@@ -81,7 +91,7 @@ class Robot : public frc::TimedRobot {
   double wristSetPosition = 0;
 
   // wrist PID vars
-  const float WRIST_kP = 0.01;
+  const float WRIST_kP = 0.001;
   const float WRIST_kI = 0;
   const float WRIST_kD = 0;
   const float WRIST_kF = 0;

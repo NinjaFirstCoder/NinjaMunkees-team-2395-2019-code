@@ -43,7 +43,24 @@ void Robot::RobotInit() {
       wpi::errs().flush();
   #endif
   
+    
+    // set PID coefficients
+    m_pidController.SetP(kP);
+    m_pidController.SetI(kI);
+    m_pidController.SetD(kD);
+    m_pidController.SetIZone(kIz);
+    m_pidController.SetFF(kFF);
+    m_pidController.SetOutputRange(kMinOutput, kMaxOutput);
 
+    // display PID coefficients on SmartDashboard
+    frc::SmartDashboard::PutNumber("ElE / P Gain", kP);
+    frc::SmartDashboard::PutNumber("ElE / I Gain", kI);
+    frc::SmartDashboard::PutNumber("ElE / D Gain", kD);
+    frc::SmartDashboard::PutNumber("ElE / I Zone", kIz);
+    frc::SmartDashboard::PutNumber("ElE / Feed Forward", kFF);
+    frc::SmartDashboard::PutNumber("ElE / Max Output", kMaxOutput);
+    frc::SmartDashboard::PutNumber("ElE / Min Output", kMinOutput);
+    frc::SmartDashboard::PutNumber("ElE / Set Rotations", 0);
 
 }
 
@@ -105,12 +122,12 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {
   wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
 
-  // get pid values from dashboard
+  // get pid values from dashboard for the wrist
   double p = frc::SmartDashboard::GetNumber("DB/Slider 0", 0);
   double i = frc::SmartDashboard::GetNumber("DB/Slider 1", 0);
   double d = frc::SmartDashboard::GetNumber("DB/Slider 2", 0);
   double f = frc::SmartDashboard::GetNumber("DB/Slider 3", 0);
-  setNewWristPID(p,i,d,f);
+  //setNewWristPID(p,i,d,f);
 }
 
 /*******************************************************************************************
@@ -170,10 +187,13 @@ void Robot::RunLifter() {
  * lower limit switches. 
  */
 void Robot::RunWrist() {
-  float rots = 10; // number of rotations for the first point
+  float rots = 1; // number of rotations for the first point
 
   if(buttonBoard.GetRawButton(6)) {
     wristSetPosition = rots * 4096;
+  }
+  else if(buttonBoard.GetRawButton(7)) {
+    wristSetPosition =  4096 / 2;
   }
   else if(buttonBoard.GetRawButton(5)) {
     wristSetPosition = 0;
@@ -194,31 +214,78 @@ void Robot::RunWrist() {
  */
 void Robot::RunElevator() {
   if(elevatorUpperLimitSwitch.Get()) {
-    stateX = true;
+    buttup = true;
   }
   else {
-    stateX = false;
+    buttup = false;
   }
 
   if(elevatorLowerLimitSwitch.Get()) {
-    stateY = true;
+    buttdown = true;
   }
   else {
-    stateY = false;
+    buttdown = false;
   }
 
-  if(elevatorEncoder.GetPosition() <50) {
     if(buttonBoard.GetRawButton(4)) {
-      elevator.Set(1);
+      m_pidController.SetReference(125, rev::ControlType::kPosition);
     }
     else if(buttonBoard.GetRawButton(3)) {
-      elevator.Set(-1);
+      m_pidController.SetReference(0, rev::ControlType::kPosition);
     }
-    else {
-      elevator.Set(0);
-    }
-  }
-  else{elevator.Set(0);}
+//---------------------------------------------------------------------------------------------------------------
+  int tmp;
+		
+		if(E1 ) {
+				arm_currentPos = -99999999999;
+				
+		} else {
+				tmp = -ArmJoystick->GetY();
+				if (tmp < -0.1) {
+						arm_currentPos += ((tmp + 0.1) * (-1 / (-1 + 0.1))) * 5800;
+				} else {
+						arm_currentPos += 0;
+				}
+				//arm_currentPos += -ArmJoystick->GetY() * 5800;
+				//ArmTalon->Set(ControlMode::PercentOutput, ArmJoystick->GetY());
+		}
+
+		if(!HallEffect->Get()) {
+			ArmTalon->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs);
+			arm_currentPos = 0;
+
+			//arm_currentPos =  ArmTalon->GetSelectedSensorPosition(0);
+		} else if(arm_currentPos < lowerLimit) {
+			arm_currentPos = lowerLimit;
+		}
+
+
+		if(ArmButtons.mid) {
+				arm_currentPos = (ARM_UPPER_LIMIT/2);
+		} else if(ArmButtons.high){
+				arm_currentPos = ARM_UPPER_LIMIT;
+		} else if(ArmButtons.lowmid) {
+				arm_currentPos = 40000;
+		} else {
+				tmp = -ArmJoystick->GetY();
+				if (tmp > 0.1) {
+						arm_currentPos += ((tmp - 0.1) * (1 / (1 - 0.1))) * 5800 ;
+				} else {
+						arm_currentPos += 0;
+				}
+				//arm_currentPos += -ArmJoystick->GetY() * 5800;
+				//ArmTalon->Set(ControlMode::PercentOutput, ArmJoystick->GetY());
+		}
+
+		if(arm_currentPos > ARM_UPPER_LIMIT) {
+			arm_currentPos = ARM_UPPER_LIMIT;
+		}
+		/*
+		int tmp;
+		if(!zeroingOperation) {
+			if(!HallEffect->Get()) {
+				ArmTalon->SetSelectedSensorPosition(-100, kPIDLoopIdx, kTimeoutMs);
+			}
 
 
   /*if (stateX = true && m_buttonBoard.GetRawButton(3)){
@@ -253,6 +320,11 @@ void Robot::RunShooter() {
     wristMotor->Config_kP(kPIDLoopIdx, p, kTimeoutMs);
     wristMotor->Config_kI(kPIDLoopIdx, i, kTimeoutMs);
     wristMotor->Config_kD(kPIDLoopIdx, d, kTimeoutMs);
+
+    frc::SmartDashboard::PutNumber("Wrist / p", p);
+    frc::SmartDashboard::PutNumber("Wrist / i", i);
+    frc::SmartDashboard::PutNumber("Wrist / d", d);
+    frc::SmartDashboard::PutNumber("Wrist / f", f);
 
   }
 
