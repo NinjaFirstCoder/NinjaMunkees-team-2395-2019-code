@@ -37,6 +37,9 @@ class Robot : public frc::TimedRobot {
   void RunElevator(); 
   void RunShooter();
 
+  // ultil functions
+  void setNewWristPID(double p, double i, double d, double f);
+
 
   // *************************************
   // input device setup
@@ -78,7 +81,7 @@ class Robot : public frc::TimedRobot {
   double wristSetPosition = 0;
 
   // wrist PID vars
-  const float WRIST_kP = 0.1;
+  const float WRIST_kP = 0.01;
   const float WRIST_kI = 0;
   const float WRIST_kD = 0;
   const float WRIST_kF = 0;

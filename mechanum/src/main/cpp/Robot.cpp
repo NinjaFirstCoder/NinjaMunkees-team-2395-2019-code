@@ -22,7 +22,7 @@ void Robot::RobotInit() {
   // *************************************
   // wrist setup
   wristMotor->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0,0);
-  wristMotor->SetSensorPhase(true);
+  wristMotor->SetSensorPhase(false);
   wristMotor->SetInverted(false);
 
 	wristMotor->Config_kF(kPIDLoopIdx, WRIST_kF, kTimeoutMs);
@@ -104,6 +104,13 @@ void Robot::AutonomousPeriodic() {
  */
 void Robot::TeleopInit() {
   wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
+
+  // get pid values from dashboard
+  double p = frc::SmartDashboard::GetNumber("DB/Slider 0", 0);
+  double i = frc::SmartDashboard::GetNumber("DB/Slider 1", 0);
+  double d = frc::SmartDashboard::GetNumber("DB/Slider 2", 0);
+  double f = frc::SmartDashboard::GetNumber("DB/Slider 3", 0);
+  setNewWristPID(p,i,d,f);
 }
 
 /*******************************************************************************************
@@ -240,7 +247,14 @@ void Robot::RunShooter() {
 }
 
 // ================================= END OF MAIN TELEOP FUNCTIONS ================================================== //
+// ULTILITY FUNCTIONS
+  void Robot::setNewWristPID(double p, double i, double d, double f){
+    wristMotor->Config_kF(kPIDLoopIdx, f, kTimeoutMs);
+    wristMotor->Config_kP(kPIDLoopIdx, p, kTimeoutMs);
+    wristMotor->Config_kI(kPIDLoopIdx, i, kTimeoutMs);
+    wristMotor->Config_kD(kPIDLoopIdx, d, kTimeoutMs);
 
+  }
 
 /********************************************************************************************
  * This function is run if the robot is put it test mode. Good for testing ideas without 
