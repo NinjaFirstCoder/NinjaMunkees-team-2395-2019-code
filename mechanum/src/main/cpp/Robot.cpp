@@ -16,6 +16,7 @@ void Robot::RobotInit() {
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
+<<<<<<< HEAD
   m_wrist->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative,0,0);
   m_wrist->SetSensorPhase(false);
 
@@ -26,6 +27,23 @@ void Robot::RobotInit() {
 
   /*m_elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative,0,0);
   m_elevator.SetSensorPhase(false);
+=======
+
+m_wrist->SetSensorPhase(true);
+
+		 m_wrist->Config_kF(kPIDLoopIdx, CONST_kF, kTimeoutMs);
+		 m_wrist->Config_kP(kPIDLoopIdx, CONST_kP, kTimeoutMs);
+		 m_wrist->Config_kI(kPIDLoopIdx, CONST_kI, kTimeoutMs);
+		 m_wrist->Config_kD(kPIDLoopIdx, CONST_kF, kTimeoutMs);
+
+#if defined(__linux__)
+    frc::CameraServer::GetInstance()->StartAutomaticCapture();
+#else
+    wpi::errs() << "Vision only available on Linux.\n";
+    wpi::errs().flush();
+#endif
+  
+>>>>>>> parent of 0b5c411... Cleaned code and "fixed" encoder issues
 
 	m_elevator.Config_kF(0, CONST_kF, 10);
 	m_elevator.Config_kP(0, CONST_kP, 10);
@@ -105,6 +123,7 @@ void Robot::AutonomousPeriodic() {
   }
 }
 
+<<<<<<< HEAD
 void Robot::TeleopInit() {
 
   m_wrist->SetSelectedSensorPosition(0);
@@ -144,9 +163,80 @@ void Robot::TeleopPeriodic() {
 
 
   //if(m_encoder.GetPosition() >){
+=======
+void Robot::TeleopInit() {}
+//--------------------------------------------------------------------------------------------------
+//==============================================================================================
+//------------------------------------------------------------------------------------------------------
+void Robot::TeleopPeriodic() {
+
+frc::SmartDashboard::PutNumber("Encoder Positiona", m_encoder.GetPosition());
+frc::SmartDashboard::PutNumber("Encoder Velocity", m_encoder.GetVelocity());
+
+
+m_drive.DriveCartesian(m_driveStick.GetX(), m_driveStick.GetY(), m_driveStick.GetZ());
+
+
+// Setting up lifter
+
+if(m_driveStick.GetRawButton(4)){
+
+m_lifter1.Set(1);
+m_lifter2.Srt(-1);
+}
+else if(m_driveStick.GetRawButton(2)){
+
+m_lifter1.Set(-1);
+m_lifter2.Set(1);
+}
+
+else{
+
+m_Lifter.Set(0);
+
+}
+
+//-------------------------------------------------------------------------------------------------------
+
+//elevator
+//system
+//that
+//does
+//stuff
+
+
+//if(m_encoder.GetPosition() >){
+
+//m_elevator.Set(0);
+
+//}
+
+
+if(m_bottomButton.Get())
+{
+    stateX = true;
+}
+else{
+
+    stateX = false;
+
+}
+if(m_topButton.Get()){
+
+stateY = true;
+
+}
+else{
+
+stateY = false;
+
+}
+if(m_encoder.GetPosition() <50){
+>>>>>>> parent of 0b5c411... Cleaned code and "fixed" encoder issues
 
   //m_elevator.Set(0);
 
+<<<<<<< HEAD
   //}
 
 
@@ -178,8 +268,19 @@ void Robot::TeleopPeriodic() {
   }
   }
   else{m_elevator.Set(0);}
+=======
 
+  if(m_buttonBoard.GetRawButton(4)){
 
+    m_elevator.Set(1);
+
+  }
+  else if(m_buttonBoard.GetRawButton(3)){
+>>>>>>> parent of 0b5c411... Cleaned code and "fixed" encoder issues
+
+    m_elevator.Set(-1);
+
+<<<<<<< HEAD
   /*if (stateX = true && m_buttonBoard.GetRawButton(3)){
 
   m_elevator.Set(0);
@@ -230,6 +331,59 @@ void Robot::TeleopPeriodic() {
     m_shooter.Set(0);
 
   }
+=======
+  }
+
+else{
+
+m_elevator.Set(0);
+
+}
+}
+else{m_elevator.Set(0);}
+
+
+/*if (stateX = true && m_buttonBoard.GetRawButton(3)){
+
+m_elevator.Set(0);
+
+}
+
+if (stateY = true && m_buttonBoard.GetRawButton(4)){
+
+m_elevator.Set(0);
+
+}*/
+
+
+//--------------------------------------------------------------------------------------
+//wrist
+
+m_wrist->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder,0,0);
+
+frc::SmartDashboard::PutNumber("wrist Position", m_wrist->GetSelectedSensorPosition());
+
+
+
+//-----------------------------------------------------------------------
+//shooter
+
+if(m_driveStick.GetRawButton(5)){
+
+m_shooter.Set(1);
+
+}
+else if(m_driveStick.GetRawButton(6)){
+
+m_shooter.Set(-1);
+
+}
+else{
+
+m_shooter.Set(0);
+
+}
+>>>>>>> parent of 0b5c411... Cleaned code and "fixed" encoder issues
 
 }
 void Robot::TestPeriodic() {}

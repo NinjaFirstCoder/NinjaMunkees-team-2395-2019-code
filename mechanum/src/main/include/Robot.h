@@ -52,6 +52,7 @@ class Robot : public frc::TimedRobot {
 
   frc::MecanumDrive m_drive{m_frontLeft, m_rearLeft, m_frontRight, m_rearRight};
   frc::Joystick m_driveStick{0};
+<<<<<<< HEAD
 
 //lifter setup------------------------------------------------
 
@@ -67,6 +68,22 @@ rev::CANSparkMax m_elevator{0, rev::CANSparkMax::MotorType::kBrushless};
 rev::CANEncoder m_encoder = m_elevator.GetEncoder();
 rev::CANPIDController m_pidController = m_elevator.GetPIDController();
 
+=======
+
+//lifter setup------------------------------------------------
+
+  rev::CANSparkMax m_lift1{2, rev::CANSparkMax::MotorType::kBrushless};
+rev::CANEncoder m_lift1E = m_lift1.GetEncoder();
+
+rev::CANSparkMax m_lift2{3, rev::CANSparkMax::MotorType::kBrushless};
+rev::CANEncoder m_lift2E = m_lift2.GetEncoder();
+
+//elevator setup---------------------------------------------
+
+rev::CANSparkMax m_elevator{0, rev::CANSparkMax::MotorType::kBrushless};
+rev::CANEncoder m_encoder = m_elevator.GetEncoder();
+
+>>>>>>> parent of 0b5c411... Cleaned code and "fixed" encoder issues
 frc::DigitalInput m_bottomButton{0};
 frc::DigitalInput m_topButton{1};
   
@@ -74,8 +91,18 @@ frc::DigitalInput m_topButton{1};
 
 bool stateX;
 bool stateY;
+<<<<<<< HEAD
 
 //wrist setup------------------------------------------------------------
+=======
+//wrist setup------------------------------------------------------------
+
+  TalonSRX * m_wrist = new TalonSRX(1);
+  
+//shooter setup---------------------------------------------------------------
+
+  frc::Talon m_shooter{8};
+>>>>>>> parent of 0b5c411... Cleaned code and "fixed" encoder issues
 
   TalonSRX * m_wrist = new TalonSRX(1);
   
