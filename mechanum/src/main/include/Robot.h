@@ -85,10 +85,14 @@ class Robot : public frc::TimedRobot {
     kMaxOutput = 1, 
     kMinOutput = -1;
 
+  double elePosition = 0; // measured in rotations 
+  double zeroPoint = 0;
+  double highLimit = 0;
+
   // *************************************
   // wrist setup
   TalonSRX * wristMotor = new TalonSRX(1);
-  double wristSetPosition = 0;
+  double wristSetPosition = 1;
 
   // wrist PID vars
   const float WRIST_kP = 0.001;
@@ -98,6 +102,12 @@ class Robot : public frc::TimedRobot {
 
   const int kPIDLoopIdx = 0;
   const int kTimeoutMs = 10;
+
+  enum wristPositions {
+    wrist_low = 0,
+    wrist_mid = 0.5,
+    wrist_high = 1
+  }
 
   // *************************************
   //shooter setup
