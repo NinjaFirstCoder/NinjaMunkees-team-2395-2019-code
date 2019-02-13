@@ -235,14 +235,16 @@ void Robot::RunElevator() {
     }
 //---------------------------------------------------------------------------------------------------------------
   int tmp;
-		
+		bool elevatorP;
+
 		if(E1 ) {
-				arm_currentPos = -99999999999;
+				elevatorP = -99999999999;
 				
 		} else {
-				tmp = -ArmJoystick->GetY();
+				tmp = elevatorJoystick->GetY();
+        
 				if (tmp < -0.1) {
-						arm_currentPos += ((tmp + 0.1) * (-1 / (-1 + 0.1))) * 5800;
+						elevatorP += ((tmp + 0.1) * (-1 / (-1 + 0.1))) * 5800;
 				} else {
 						arm_currentPos += 0;
 				}
@@ -294,7 +296,10 @@ void Robot::RunElevator() {
   if (stateY = true && m_buttonBoard.GetRawButton(4)){
     elevator.Set(0);
   }*/
+
+   m_pidController.SetReference(elevatorP, rev::ControlType::kPosition);
 }
+
 
 
 /*****************************************************

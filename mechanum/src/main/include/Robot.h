@@ -66,6 +66,15 @@ class Robot : public frc::TimedRobot {
 
   // *************************************
   // elevator setup
+  bool E1 = buttonBoard.GetRAwButton(1);
+  bool E2 = buttonBoard.GetRAwButton(2);
+  bool E3 = buttonBoard.GetRAwButton(3);
+  bool E4 = buttonBoard.GetRAwButton(4);
+  bool E5 = buttonBoard.GetRAwButton(5);
+  bool E6 = buttonBoard.GetRAwButton(6);
+  
+  frc::Joystick elevatorJoystick{3};
+
   rev::CANSparkMax elevator{0, rev::CANSparkMax::MotorType::kBrushless};
   rev::CANEncoder elevatorEncoder = elevator.GetEncoder();
   frc::DigitalInput elevatorUpperLimitSwitch{0};
