@@ -66,15 +66,6 @@ class Robot : public frc::TimedRobot {
 
   // *************************************
   // elevator setup
-  bool E1 = buttonBoard.GetRAwButton(1);
-  bool E2 = buttonBoard.GetRAwButton(2);
-  bool E3 = buttonBoard.GetRAwButton(3);
-  bool E4 = buttonBoard.GetRAwButton(4);
-  bool E5 = buttonBoard.GetRAwButton(5);
-  bool E6 = buttonBoard.GetRAwButton(6);
-  
-  frc::Joystick elevatorJoystick{3};
-
   rev::CANSparkMax elevator{0, rev::CANSparkMax::MotorType::kBrushless};
   rev::CANEncoder elevatorEncoder = elevator.GetEncoder();
   frc::DigitalInput elevatorUpperLimitSwitch{0};
@@ -94,10 +85,14 @@ class Robot : public frc::TimedRobot {
     kMaxOutput = 1, 
     kMinOutput = -1;
 
+  double elePosition = 0; // measured in rotations 
+  double zeroPoint = 0;
+  double highLimit = 0;
+
   // *************************************
   // wrist setup
   TalonSRX * wristMotor = new TalonSRX(1);
-  double wristSetPosition = 0;
+  double wristSetPosition = 1;
 
   // wrist PID vars
   const float WRIST_kP = 0.001;
@@ -107,6 +102,12 @@ class Robot : public frc::TimedRobot {
 
   const int kPIDLoopIdx = 0;
   const int kTimeoutMs = 10;
+
+  
+  const float  wrist_low = 0;
+  const float  wrist_mid = 0.5;
+  const float  wrist_high = 1;
+  
 
   // *************************************
   //shooter setup

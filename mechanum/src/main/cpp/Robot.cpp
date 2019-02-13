@@ -120,14 +120,17 @@ void Robot::AutonomousPeriodic() {
  * and enabled. It is run only once, then the OS begins calling TeleopPeriodic
  */
 void Robot::TeleopInit() {
-  wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
-
+  //wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
+  zeroPoint = (wristMotor->GetSelectedSensorPosition())/4096;
+  elePosition = zeroPoint;
   // get pid values from dashboard for the wrist
   double p = frc::SmartDashboard::GetNumber("DB/Slider 0", 0);
   double i = frc::SmartDashboard::GetNumber("DB/Slider 1", 0);
   double d = frc::SmartDashboard::GetNumber("DB/Slider 2", 0);
   double f = frc::SmartDashboard::GetNumber("DB/Slider 3", 0);
   //setNewWristPID(p,i,d,f);
+
+  
 }
 
 /*******************************************************************************************
@@ -144,9 +147,9 @@ void Robot::TeleopPeriodic() {
 
   RunDriveTrain();
   RunElevator();
-  RunLifter();
-  RunWrist();
-  RunShooter();
+  //RunLifter();
+ // RunWrist();
+  //RunShooter();
 
 }
 
@@ -213,93 +216,57 @@ void Robot::RunWrist() {
  * extent of its travel
  */
 void Robot::RunElevator() {
+  wristMotor->ConfigNominalOutputForward( 0.2); // drop the power down a little 
+  wristMotor->ConfigNominalOutputReverse(-0.2);
+
+  if(buttonBoard.GetRawButton(1)) { // lowest position 
+    if(wristSetPosition == wrist_low || wristSetPosition == wrist_mid) { // check wrist position 
+      // do nothing (do not move elevator lower because wrist will be distroyed)
+    } else {
+      elePosition = -10 ;//- zeroPoint; // drop until the limit switch is found
+    }
+
+  } else if(buttonBoard.GetRawButton(2)) { // next lowest
+    if(wristSetPosition == wrist_low || wristSetPosition == wrist_mid) { // check wrist position 
+      // do nothing (do not move elevator lower because wrist will be distroyed)
+    } else {
+      elePosition = 2 ;//- zeroPoint; // drop until the limit switch is found
+    }
+
+  } else if(buttonBoard.GetRawButton(3)) { // first position that is okay when the wrist is down
+    elePosition = 4;// - zeroPoint;
+  } else if(buttonBoard.GetRawButton(4)) { 
+    elePosition = 8 ;//- zeroPoint;
+  } else if(buttonBoard.GetRawButton(5)) {
+    elePosition = 16 ;//- zeroPoint;
+  } else if(buttonBoard.GetRawButton(6)) {
+    elePosition = 20 ;//- zeroPoint;
+  } else if(buttonBoard.GetRawButton(7)) {
+    elePosition = 24 ;//- zeroPoint;
+  }
+
+
   if(elevatorUpperLimitSwitch.Get()) {
-    buttup = true;
+    highLimit = (wristMotor->GetSelectedSensorPosition()) / 4096;
+    //highLimit = elevatorEncoder.GetPosition();
+    elePosition = highLimit;
   }
-  else {
-    buttup = false;
-  }
-
   if(elevatorLowerLimitSwitch.Get()) {
-    buttdown = true;
+    zeroPoint = (wristMotor->GetSelectedSensorPosition()) / 4096;
+    //zeroPoint = elevatorEncoder.GetPosition();
+    elePosition = zeroPoint;
   }
-  else {
-    buttdown = false;
-  }
 
-    if(buttonBoard.GetRawButton(4)) {
-      m_pidController.SetReference(125, rev::ControlType::kPosition);
-    }
-    else if(buttonBoard.GetRawButton(3)) {
-      m_pidController.SetReference(0, rev::ControlType::kPosition);
-    }
-//---------------------------------------------------------------------------------------------------------------
-  int tmp;
-		bool elevatorP;
+  wristMotor->Set(ControlMode::Position, elePosition * 4096);
+  //m_pidController.SetReference(elePosition, rev::ControlType::kPosition);
+  frc::SmartDashboard::PutNumber("Elevator / Set Position", elePosition);
+  frc::SmartDashboard::PutNumber("Elevator / Actual Position", (wristMotor->GetSelectedSensorPosition())/4096);
+  frc::SmartDashboard::PutNumber("Elevator / zero Point", zeroPoint);
 
-		if(E1 ) {
-				elevatorP = -99999999999;
-				
-		} else {
-				tmp = elevatorJoystick->GetY();
-        
-				if (tmp < -0.1) {
-						elevatorP += ((tmp + 0.1) * (-1 / (-1 + 0.1))) * 5800;
-				} else {
-						arm_currentPos += 0;
-				}
-				//arm_currentPos += -ArmJoystick->GetY() * 5800;
-				//ArmTalon->Set(ControlMode::PercentOutput, ArmJoystick->GetY());
-		}
-
-		if(!HallEffect->Get()) {
-			ArmTalon->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs);
-			arm_currentPos = 0;
-
-			//arm_currentPos =  ArmTalon->GetSelectedSensorPosition(0);
-		} else if(arm_currentPos < lowerLimit) {
-			arm_currentPos = lowerLimit;
-		}
-
-
-		if(ArmButtons.mid) {
-				arm_currentPos = (ARM_UPPER_LIMIT/2);
-		} else if(ArmButtons.high){
-				arm_currentPos = ARM_UPPER_LIMIT;
-		} else if(ArmButtons.lowmid) {
-				arm_currentPos = 40000;
-		} else {
-				tmp = -ArmJoystick->GetY();
-				if (tmp > 0.1) {
-						arm_currentPos += ((tmp - 0.1) * (1 / (1 - 0.1))) * 5800 ;
-				} else {
-						arm_currentPos += 0;
-				}
-				//arm_currentPos += -ArmJoystick->GetY() * 5800;
-				//ArmTalon->Set(ControlMode::PercentOutput, ArmJoystick->GetY());
-		}
-
-		if(arm_currentPos > ARM_UPPER_LIMIT) {
-			arm_currentPos = ARM_UPPER_LIMIT;
-		}
-		/*
-		int tmp;
-		if(!zeroingOperation) {
-			if(!HallEffect->Get()) {
-				ArmTalon->SetSelectedSensorPosition(-100, kPIDLoopIdx, kTimeoutMs);
-			}
-
-
-  /*if (stateX = true && m_buttonBoard.GetRawButton(3)){
-    elevator.Set(0);
-  }
-  if (stateY = true && m_buttonBoard.GetRawButton(4)){
-    elevator.Set(0);
-  }*/
-
-   m_pidController.SetReference(elevatorP, rev::ControlType::kPosition);
+  frc::SmartDashboard::PutNumber("Elevator / t Set Position", elePosition * 4096);
+  frc::SmartDashboard::PutNumber("Elevator / t Actual Position", wristMotor->GetSelectedSensorPosition());
+  frc::SmartDashboard::PutNumber("Elevator / t zero Point", zeroPoint * 4096);
 }
-
 
 
 /*****************************************************
