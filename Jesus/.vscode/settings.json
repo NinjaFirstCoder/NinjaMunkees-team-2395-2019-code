@@ -12,9 +12,5 @@
     ".project": true
   },
   "C_Cpp.default.configurationProvider": "vscode-wpilib",
-  "wpilib.online": true,
-  "files.associations": {
-    "chrono": "cpp",
-    "*.inc": "cpp"
-  }
+  "wpilib.online": true
 }

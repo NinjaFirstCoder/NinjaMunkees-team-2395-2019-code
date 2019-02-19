@@ -4,23 +4,21 @@
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
-#include "Robot.h" // also contains majority of includes 
+
+#include "Robot.h"
+
 #include <iostream>
+
 #include <frc/smartdashboard/SmartDashboard.h>
 
-
-/*********************************************************************************************
- * This function is called once when the robot is powered on. It is where all of the 
- * sensor/motor controller setup should be. No movement code should live in here. 
- * 
- */
 void Robot::RobotInit() {
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
-  // *************************************
+   // *************************************
   // wrist setup
+  
   wristMotor->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0,0);
   wristMotor->SetSensorPhase(false);
   wristMotor->SetInverted(false);
@@ -30,9 +28,11 @@ void Robot::RobotInit() {
 	wristMotor->Config_kI(kPIDLoopIdx, WRIST_kI, kTimeoutMs);
 	wristMotor->Config_kD(kPIDLoopIdx, WRIST_kD, kTimeoutMs);
 
-  wristMotor->ConfigNominalOutputForward( 0.5); // drop the power down a little 
-  wristMotor->ConfigNominalOutputReverse(-0.5);
+  //wristMotor->ConfigNominalOutputForward( .5); // drop the power down a little 
+  //wristMotor->ConfigNominalOutputReverse(-.5);
 
+  wristMotor->ConfigPeakOutputForward(1);
+  wristMotor->ConfigPeakOutputReverse(-1);
 
   // *************************************
   // Camera server setup
@@ -45,7 +45,7 @@ void Robot::RobotInit() {
   
     
     // set PID coefficients
-    m_pidController.SetP(kP);
+   /* m_pidController.SetP(kP);
     m_pidController.SetI(kI);
     m_pidController.SetD(kD);
     m_pidController.SetIZone(kIz);
@@ -60,26 +60,20 @@ void Robot::RobotInit() {
     frc::SmartDashboard::PutNumber("ElE / Feed Forward", kFF);
     frc::SmartDashboard::PutNumber("ElE / Max Output", kMaxOutput);
     frc::SmartDashboard::PutNumber("ElE / Min Output", kMinOutput);
-    frc::SmartDashboard::PutNumber("ElE / Set Rotations", 0);
-
+    frc::SmartDashboard::PutNumber("ElE / Set Rotations", 0);*/
 }
 
-/*********************************************************************************************
+/**
  * This function is called every robot packet, no matter the mode. Use
  * this for items like diagnostics that you want ran during disabled,
  * autonomous, teleoperated and test.
  *
  * <p> This runs after the mode specific periodic functions, but before
  * LiveWindow and SmartDashboard integrated updating.
- * 
- * DO NOT PUT ANY MOVEMENT CODE IN HERE! ROBOT WILL BE DISQUAILFIED. 
  */
-void Robot::RobotPeriodic() {
+void Robot::RobotPeriodic() {}
 
-
-}
-
-/*******************************************************************************************
+/**
  * This autonomous (along with the chooser code above) shows how to select
  * between different autonomous modes using the dashboard. The sendable chooser
  * code works with the Java SmartDashboard. If you prefer the LabVIEW Dashboard,
@@ -103,9 +97,6 @@ void Robot::AutonomousInit() {
   }
 }
 
-/********************************************************************************************
- * This function is called every 20ms when the robot is enabled in autonomous mode.
- */
 void Robot::AutonomousPeriodic() {
   if (m_autoSelected == kAutoNameCustom) {
     // Custom Auto goes here
@@ -114,52 +105,40 @@ void Robot::AutonomousPeriodic() {
   }
 }
 
-
-/*******************************************************************************************
- * This is the first function that is called when the robot is pun into teleop mode
- * and enabled. It is run only once, then the OS begins calling TeleopPeriodic
- */
 void Robot::TeleopInit() {
-  //wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
-  zeroPoint = (wristMotor->GetSelectedSensorPosition())/4096;
+   wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
+  //zeroPoint = (wristMotor->GetSelectedSensorPosition())/4096;
   elePosition = zeroPoint;
   // get pid values from dashboard for the wrist
   double p = frc::SmartDashboard::GetNumber("DB/Slider 0", 0);
   double i = frc::SmartDashboard::GetNumber("DB/Slider 1", 0);
   double d = frc::SmartDashboard::GetNumber("DB/Slider 2", 0);
   double f = frc::SmartDashboard::GetNumber("DB/Slider 3", 0);
-  //setNewWristPID(p,i,d,f);
-
-  
+  setNewWristPID(p,i,d,f);
 }
 
-/*******************************************************************************************
- * This is the function where the majority of the robot code lives. It is called once 
- * every 20ms when the robot is enabled in teleop mode. 
- * 
- * MAKE SURE THIS FUNCTION DOESN'T TAKE MORE THAN 20MS TO RUN!!!
- * so that means: no loops, delays or pauses
- */
 void Robot::TeleopPeriodic() {
-  // display encoder values 
+
+
+  frc::SmartDashboard::PutNumber("joystick", elevatorStick.GetY());
+
   frc::SmartDashboard::PutNumber("Encoder Positiona", elevatorEncoder.GetPosition());
   frc::SmartDashboard::PutNumber("Encoder Velocity", elevatorEncoder.GetVelocity());
 
-  RunDriveTrain();
+  //RunDriveTrain();
   RunElevator();
   //RunLifter();
- // RunWrist();
+  //RunWrist();
   //RunShooter();
-
+  //CollinsPartyPiece();
 }
 
-
-// ================================= MAIN TELEOP FUNCTIONS ================================================== //
+ // ================================= MAIN TELEOP FUNCTIONS ================================================== //
 /*****************************************************
  * This function controls the robot drive train.
  */
 void Robot::RunDriveTrain() {
-  driveTrain.DriveCartesian(mainJoystick.GetX(), mainJoystick.GetY(), mainJoystick.GetZ());
+  driveTrain.DriveCartesian(mainJoystick.GetX(), mainJoystick.GetY(), mainJoystick.GetZ() *-1);
 
 }
 
@@ -190,13 +169,13 @@ void Robot::RunLifter() {
  * lower limit switches. 
  */
 void Robot::RunWrist() {
-  float rots = 1; // number of rotations for the first point
+  float rots = .15; // number of rotations for the first point
 
-  if(buttonBoard.GetRawButton(6)) {
+  if(buttonBoard.GetRawButton(7)) {
     wristSetPosition = rots * 4096;
   }
-  else if(buttonBoard.GetRawButton(7)) {
-    wristSetPosition =  4096 / 2;
+  else if(buttonBoard.GetRawButton(6)) {
+    wristSetPosition =  4096 / 4;
   }
   else if(buttonBoard.GetRawButton(5)) {
     wristSetPosition = 0;
@@ -216,8 +195,33 @@ void Robot::RunWrist() {
  * extent of its travel
  */
 void Robot::RunElevator() {
-  wristMotor->ConfigNominalOutputForward( 0.2); // drop the power down a little 
-  wristMotor->ConfigNominalOutputReverse(-0.2);
+  //wristMotor->ConfigNominalOutputForward( 0.1); // drop the power down a little 
+  //wristMotor->ConfigNominalOutputReverse(-0.1);
+
+  frc::SmartDashboard::PutNumber("J0ystick y", elevatorStick.GetY());
+  //wristMotor->Set(ControlMode::PercentOutput, -elevatorStick.GetY());
+
+  float eleActual = elevatorEncoder.GetPosition();
+
+  if(elevatorStick.GetY() > 0.05 || elevatorStick.GetY() < -0.05) {
+    elePosition += (elevatorStick.GetY() / 10);
+    if(elePosition > 24) {
+      elePosition = 24;
+    }
+    if(elePosition < -10 ) {
+      elePosition = -10;
+    }
+  }
+
+ /* if(buttonBoard.GetRawButton(8)){
+    elePosition = 4;
+    if(eleActual = 4){
+      wristSetPosition = wrist_low;
+    }
+    if(eleActual = 4 || wristMotor->GetSelectedSensorPosition() = 0){
+      elePosition = 0;
+    }
+  }*/
 
   if(buttonBoard.GetRawButton(1)) { // lowest position 
     if(wristSetPosition == wrist_low || wristSetPosition == wrist_mid) { // check wrist position 
@@ -246,26 +250,22 @@ void Robot::RunElevator() {
   }
 
 
-  if(elevatorUpperLimitSwitch.Get()) {
-    highLimit = (wristMotor->GetSelectedSensorPosition()) / 4096;
-    //highLimit = elevatorEncoder.GetPosition();
-    elePosition = highLimit;
-  }
-  if(elevatorLowerLimitSwitch.Get()) {
-    zeroPoint = (wristMotor->GetSelectedSensorPosition()) / 4096;
-    //zeroPoint = elevatorEncoder.GetPosition();
-    elePosition = zeroPoint;
-  }
+  
 
-  wristMotor->Set(ControlMode::Position, elePosition * 4096);
-  //m_pidController.SetReference(elePosition, rev::ControlType::kPosition);
-  frc::SmartDashboard::PutNumber("Elevator / Set Position", elePosition);
-  frc::SmartDashboard::PutNumber("Elevator / Actual Position", (wristMotor->GetSelectedSensorPosition())/4096);
-  frc::SmartDashboard::PutNumber("Elevator / zero Point", zeroPoint);
+  //wristMotor->Set(ControlMode::Position, elePosition * 4096);
+  //m_pidController.SetReference(elePosition, rev::ControlType::kPosition);*/
 
-  frc::SmartDashboard::PutNumber("Elevator / t Set Position", elePosition * 4096);
-  frc::SmartDashboard::PutNumber("Elevator / t Actual Position", wristMotor->GetSelectedSensorPosition());
-  frc::SmartDashboard::PutNumber("Elevator / t zero Point", zeroPoint * 4096);
+if(elevatorStick.GetY() > .25 || elevatorStick.GetY() < -0.25){
+  elevator.Set(elevatorStick.GetY() * -1);
+}
+
+  //frc::SmartDashboard::PutNumber("Elevator / Set Position", elePosition);
+  //frc::SmartDashboard::PutNumber("Elevator / Actual Position", eleActual);
+  //frc::SmartDashboard::PutNumber("Elevator / zero Point", zeroPoint);
+
+  //frc::SmartDashboard::PutNumber("Elevator / t Set Position", elePosition * 4096);
+  //frc::SmartDashboard::PutNumber("Elevator / t Actual Position", eleActual);
+  //frc::SmartDashboard::PutNumber("Elevator / t zero Point", zeroPoint * 4096);
 }
 
 
@@ -273,6 +273,7 @@ void Robot::RunElevator() {
  * This function runs the shooter. The shooter has
  * no sensors attached to it whatsoever 
  */
+
 void Robot::RunShooter() {
   if(mainJoystick.GetRawButton(5)){
     shooterMotor.Set(1);
@@ -300,16 +301,54 @@ void Robot::RunShooter() {
 
   }
 
+//LEDs
+  void Robot::CollinsPartyPiece() {
+
+    // shooter
+    if(mainJoystick.GetRawButton(5)){
+      LED.Set(-0.57);
+    }
+    else if(mainJoystick.GetRawButton(6)){
+      LED.Set(-0.15);
+    }
+    // lifter
+    else if(mainJoystick.GetRawButton(4)){ 
+      LED.Set(-0.07);
+    }
+    else if(mainJoystick.GetRawButton(2)){ 
+      LED.Set(-0.07);
+    }
+    // elevator
+    else if(elevatorEncoder.GetVelocity() > 1 || elevatorEncoder.GetVelocity() < -1){
+      LED.Set(-0.39);
+    }
+    else if(elevatorEncoder.GetVelocity() < 1 && elevatorEncoder.GetVelocity() > -1){
+      LED.Set(0.77);
+    }
+    // wrist
+    /*else if(wristMotor->GetQuadratureVelocity() > 1 || wristMotor->GetQuadratureVelocity() < -1){
+      LED.Set(-0.39);
+    }
+    else if(wristMotor->GetQuadratureVelocity() < 1 && wristMotor->GetQuadratureVelocity() > -1)){
+      LED.Set(-0.87);
+    }*/
+    // When we do nothing
+    else {
+      LED.Set(-0.99);
+  }
+
+
+  }
+
 /********************************************************************************************
  * This function is run if the robot is put it test mode. Good for testing ideas without 
  * messing with the teleop or autonomous modes. 
  * 
  * it is also called once every 20ms when enabled. 
  */ 
-void Robot::TestPeriodic() {
 
 
-}
+void Robot::TestPeriodic() {}
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }
