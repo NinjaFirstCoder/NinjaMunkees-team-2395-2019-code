@@ -112,7 +112,7 @@ class Robot : public frc::TimedRobot {
 
 
 
-  rev::CANSparkMax rightLifterMotor{3, rev::CANSparkMax::MotorType::kBrushless};
+  rev::CANSparkMax rightLifterMotor{4, rev::CANSparkMax::MotorType::kBrushless};
 
   rev::CANEncoder rightLifterMotorEncoder = rightLifterMotor.GetEncoder();
 
@@ -124,14 +124,14 @@ class Robot : public frc::TimedRobot {
 
   rev::CANSparkMax elevator{3, rev::CANSparkMax::MotorType::kBrushless};
 
-  rev::CANEncoder elevatorEncoder = elevator.GetEncoder();
+  rev::CANEncoder elevatorEncoder = rightLifterMotor.GetEncoder();
 
   
 
 
   //PID setup
 
-  /*rev::CANPIDController m_pidController = elevator.GetPIDController();
+  rev::CANPIDController m_pidController = elevator.GetPIDController();
 
   
 
@@ -148,7 +148,7 @@ class Robot : public frc::TimedRobot {
     kMaxOutput = 1, 
 
     kMinOutput = -1;
-*/
+
 
 
   double elePosition = 0; // measured in rotations 
@@ -156,6 +156,10 @@ class Robot : public frc::TimedRobot {
   double zeroPoint = 0;
 
   double highLimit = 0;
+
+
+  float deadZone = .25;
+  
 
 
 
@@ -186,6 +190,8 @@ class Robot : public frc::TimedRobot {
 
 
   const float  wrist_low = 0;
+
+  const float  wrist_pickup = 0;
 
   const float  wrist_mid = 4096 / 4;
 

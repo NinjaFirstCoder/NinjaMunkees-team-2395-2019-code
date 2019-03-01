@@ -45,7 +45,7 @@ void Robot::RobotInit() {
   
     
     // set PID coefficients
-   /* m_pidController.SetP(kP);
+    m_pidController.SetP(kP);
     m_pidController.SetI(kI);
     m_pidController.SetD(kD);
     m_pidController.SetIZone(kIz);
@@ -60,7 +60,7 @@ void Robot::RobotInit() {
     frc::SmartDashboard::PutNumber("ElE / Feed Forward", kFF);
     frc::SmartDashboard::PutNumber("ElE / Max Output", kMaxOutput);
     frc::SmartDashboard::PutNumber("ElE / Min Output", kMinOutput);
-    frc::SmartDashboard::PutNumber("ElE / Set Rotations", 0);*/
+    frc::SmartDashboard::PutNumber("ElE / Set Rotations", 0);
 }
 
 /**
@@ -126,9 +126,9 @@ void Robot::TeleopPeriodic() {
   frc::SmartDashboard::PutNumber("Encoder Velocity", elevatorEncoder.GetVelocity());
 
   //RunDriveTrain();
-  RunElevator();
-  //RunLifter();
-  //RunWrist();
+  //RunElevator();
+  RunLifter();
+  RunWrist();
   //RunShooter();
   //CollinsPartyPiece();
 }
@@ -159,6 +159,8 @@ void Robot::RunLifter() {
     leftLifterMotor.Set(0);
     rightLifterMotor.Set(0);
   }
+  frc::SmartDashboard::PutNumber("Lifter pos", leftLifterMotorEncoder.GetPosition());
+  frc::SmartDashboard::PutNumber("Lifter pos", rightLifterMotorEncoder.GetPosition());
 
 }
 
@@ -169,20 +171,24 @@ void Robot::RunLifter() {
  * lower limit switches. 
  */
 void Robot::RunWrist() {
-  float rots = .15; // number of rotations for the first point
+  float rots = .15; // number of rotations for the high point
 
-  if(buttonBoard.GetRawButton(7)) {
-    wristSetPosition = rots * 4096;
+  if(buttonBoard.GetRawButton(9)) {
+    wristSetPosition = wrist_high;
   }
-  else if(buttonBoard.GetRawButton(6)) {
-    wristSetPosition =  4096 / 4;
+  else if(buttonBoard.GetRawButton(10)) {
+    wristSetPosition =  wrist_mid;
   }
-  else if(buttonBoard.GetRawButton(5)) {
-    wristSetPosition = 0;
+  else if(buttonBoard.GetRawButton(11)){
+    wristSetPosition = wrist_pickup;
+  }
+  else if(buttonBoard.GetRawButton(11)) {
+    wristSetPosition = wrist_low;
   }
   frc::SmartDashboard::PutNumber("Wrist / Actual Position", wristMotor->GetSelectedSensorPosition());
   frc::SmartDashboard::PutNumber("Wrist / Set Position", wristSetPosition);
   wristMotor->Set(ControlMode::Position, wristSetPosition);
+  m_pidController.SetReference(wristSetPosition, rev::ControlType::kPosition);
 
 }
 
@@ -202,6 +208,8 @@ void Robot::RunElevator() {
   //wristMotor->Set(ControlMode::PercentOutput, -elevatorStick.GetY());
 
   float eleActual = elevatorEncoder.GetPosition();
+  double tmp = elevatorStick.GetY() * -1;
+  float theth;
 
   if(elevatorStick.GetY() > 0.05 || elevatorStick.GetY() < -0.05) {
     elePosition += (elevatorStick.GetY() / 10);
@@ -213,18 +221,18 @@ void Robot::RunElevator() {
     }
   }
 
- /* if(buttonBoard.GetRawButton(8)){
+  if(buttonBoard.GetRawButton(8)){
     elePosition = 4;
     if(eleActual = 4){
       wristSetPosition = wrist_low;
     }
-    if(eleActual = 4 || wristMotor->GetSelectedSensorPosition() = 0){
+    if(eleActual = 4 && wristMotor->GetSelectedSensorPosition() == 0){
       elePosition = 0;
     }
-  }*/
+  }
 
   if(buttonBoard.GetRawButton(1)) { // lowest position 
-    if(wristSetPosition == wrist_low || wristSetPosition == wrist_mid) { // check wrist position 
+    if(wristSetPosition == wrist_low || wristSetPosition == wrist_mid || wristSetPosition == wrist_pickup ) { // check wrist position 
       // do nothing (do not move elevator lower because wrist will be distroyed)
     } else {
       elePosition = -10 ;//- zeroPoint; // drop until the limit switch is found
@@ -249,15 +257,27 @@ void Robot::RunElevator() {
     elePosition = 24 ;//- zeroPoint;
   }
 
-
+  
   
 
   //wristMotor->Set(ControlMode::Position, elePosition * 4096);
-  //m_pidController.SetReference(elePosition, rev::ControlType::kPosition);*/
+  m_pidController.SetReference(elePosition, rev::ControlType::kPosition);
 
-if(elevatorStick.GetY() > .25 || elevatorStick.GetY() < -0.25){
-  elevator.Set(elevatorStick.GetY() * -1);
+if(tmp > deadZone){
+  theth = ((tmp - deadZone) * (1 / (1 - deadZone)));
+  
 }
+else if(tmp < - deadZone){
+  theth = ((tmp + deadZone) * (-1 / (-1 + deadZone)));
+  
+}
+else{
+ theth = 0;
+}
+elevator.Set(theth);
+//wristMotor->Set(ControlMode::PercentOutput, theth);
+
+frc::SmartDashboard::PutNumber("elevator output in percent", theth);
 
   //frc::SmartDashboard::PutNumber("Elevator / Set Position", elePosition);
   //frc::SmartDashboard::PutNumber("Elevator / Actual Position", eleActual);
