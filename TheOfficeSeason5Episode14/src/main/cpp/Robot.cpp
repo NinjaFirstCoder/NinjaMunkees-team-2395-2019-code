@@ -10,34 +10,42 @@
 
 
 void Robot::RobotInit() {
+
+ 
+ // cs:UsbCamera m_camera = CameraServer::GetInstance()->StartAutomaticCapture();
+
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
   // *************************************
   // wrist setup
+  
   wristMotor->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0,0);
   wristMotor->SetSensorPhase(false);
   wristMotor->SetInverted(false);
 
-	wristMotor->Config_kF(kPIDLoopIdx, WRIST_kF, kTimeoutMs);
+
 	wristMotor->Config_kP(kPIDLoopIdx, WRIST_kP, kTimeoutMs);
 	wristMotor->Config_kI(kPIDLoopIdx, WRIST_kI, kTimeoutMs);
 	wristMotor->Config_kD(kPIDLoopIdx, WRIST_kD, kTimeoutMs);
+  wristMotor->Config_kF(kPIDLoopIdx, WRIST_kF, kTimeoutMs);
   //wristMotor->ConfigNominalOutputForward( .5); // drop the power down a little 
   //wristMotor->ConfigNominalOutputReverse(-.5);
   wristMotor->ConfigPeakOutputForward(1);
   wristMotor->ConfigPeakOutputReverse(-1);
+  
+
 
   // *************************************
   // Camera server setup
-  #if defined(__linux__)
+  //#if defined(__linux__)
       frc::CameraServer::GetInstance()->StartAutomaticCapture();
-  #else
+  /*#else
       wpi::errs() << "Vision only available on Linux.\n";
       wpi::errs().flush();
 
-  #endif
+  #endif*/
   
     // set PID coefficients
     m_pidController.SetP(kP);
@@ -83,39 +91,30 @@ void Robot::RobotPeriodic() {}
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-  m_autoSelected = m_chooser.GetSelected();
-  // m_autoSelected = SmartDashboard::GetString("Auto Selector",
-  //     kAutoNameDefault);
-  std::cout << "Auto selected: " << m_autoSelected << std::endl;
-
-  if (m_autoSelected == kAutoNameCustom) {
-    // Custom Auto goes here
-  } else {
-    // Default Auto goes here
-  }
+   wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
+  wristSetPosition = 0;
 }
 
 
 
 void Robot::AutonomousPeriodic() {
+LED.Set(-0.99);
 
-  if (m_autoSelected == kAutoNameCustom) {
+driveTrain.DriveCartesian(mainJoystick.GetX(), mainJoystick.GetY(), mainJoystick.GetZ() *-1);
+  //RunDriveTrain();
+  RunElevator();
+  RunWrist();
+  RunShooter();
 
-    // Custom Auto goes here
-
-  } else {
-
-    // Default Auto goes here
-
-  }
 
 }
 
 
 
 void Robot::TeleopInit() {
-   wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
-  //zeroPoint = (wristMotor->GetSelectedSensorPosition())/4096;
+ 
+
+
   elePosition = zeroPoint;
   // get pid values from dashboard for the wrist
 
@@ -123,21 +122,23 @@ void Robot::TeleopInit() {
   double i = frc::SmartDashboard::GetNumber("DB/Slider 1", 0);
   double d = frc::SmartDashboard::GetNumber("DB/Slider 2", 0);
   double f = frc::SmartDashboard::GetNumber("DB/Slider 3", 0);
-  setNewWristPID(p,i,d,f);
+  //setNewWristPID(p,i,d,f);
 }
 
 
 
 void Robot::TeleopPeriodic() {
+ LED.Set(0.53);
   frc::SmartDashboard::PutNumber("joystick", elevatorStick.GetY());
   frc::SmartDashboard::PutNumber("Encoder Positiona", elevatorEncoder.GetPosition());
   frc::SmartDashboard::PutNumber("Encoder Velocity", elevatorEncoder.GetVelocity());
 
+driveTrain.DriveCartesian(mainJoystick.GetX(), mainJoystick.GetY(), mainJoystick.GetZ() *-1);
   //RunDriveTrain();
   RunElevator();
   //RunLifter();
   RunWrist();
-  //RunShooter();
+  RunShooter();
   //CollinsPartyPiece();
 
   /*if(buttonBoard.GetRawButton(1)) {
@@ -154,30 +155,22 @@ void Robot::TeleopPeriodic() {
  // ================================= MAIN TELEOP FUNCTIONS ================================================== //
 
 /*****************************************************
-
  * This function controls the robot drive train.
-
  */
 
 void Robot::RunDriveTrain() {
-
   driveTrain.DriveCartesian(mainJoystick.GetX(), mainJoystick.GetY(), mainJoystick.GetZ() *-1);
-
-
 
 }
 
 
 
 /*****************************************************
-
  * This function controls the lifer which is used
-
  * to raise the robot to score the climb
-
  */
-
 void Robot::RunLifter() {
+  /*
 lifter1->Set(ControlMode::PercentOutput, 1);
   if(mainJoystick.GetRawButton(4)){ // run the lifer forward 
 
@@ -203,47 +196,38 @@ lifter1->Set(ControlMode::PercentOutput, 1);
 
   }
 
-
+*/
 
 }
 
 
 
 /*****************************************************
-
  * This function controls the wrist which allows
-
  * the shooter to change angle. It uses PID to 
-
  * position and does not have any upper or 
-
  * lower limit switches. 
-
  */
-
 void Robot::RunWrist() {
-  float rots = .15; // number of rotations for the high point
   float elevatorActual = elevatorEncoder.GetPosition();
 
-  if(buttonBoard.GetRawButton(9)) {
+  if(elevatorStick.GetRawButton(3)) {
     wristSetPosition = wrist_high;
   }
-  else if(buttonBoard.GetRawButton(10)) {
+  else if(elevatorStick.GetRawButton(2)) {
     wristSetPosition =  wrist_mid;
   }
-  else if(buttonBoard.GetRawButton(8)){
+  else if(elevatorStick.GetRawButton(1)){
     wristSetPosition = wrist_pickup;
   }
-  else if(elevatorActual < 4 && buttonBoard.GetRawButton(11)) {
+  else if(/*elevatorActual > 4 &&*/ buttonBoard.GetRawButton(7)) {
     wristSetPosition = wrist_low;
   }
-
-
 
   frc::SmartDashboard::PutNumber("Wrist / Actual Position", wristMotor->GetSelectedSensorPosition());
   frc::SmartDashboard::PutNumber("Wrist / Set Position", wristSetPosition);
   wristMotor->Set(ControlMode::Position, wristSetPosition);
-  //m_pidController.SetReference(wristSetPosition, rev::ControlType::kPosition);
+  
 }
 
 
@@ -285,32 +269,35 @@ void Robot::RunElevator() {
 
   //wristMotor->Set(ControlMode::PercentOutput, -elevatorStick.GetY());
 
-  /*if(theth > .1) {
-    elePosition += (elevatorStick.GetY() / 10);
-    if(elePosition > 24) {
-      elePosition = 24;
+  
+    
+    if(elePosition > 315) {
+      elePosition = 315;
     }
-    if(elePosition < -10 ) {
-      elePosition = -10;
+    if(elePosition < -5000 ) {
+      elePosition = 0;
     }
-  }*/
+    elePosition += theth / 2;
 
-  if(buttonBoard.GetRawButton(8)) { // lowest position 
-    if(wristSetPosition == wrist_low || wristSetPosition == wrist_mid || wristSetPosition == wrist_pickup ) { // check wrist position 
+  /*if(buttonBoard.GetRawButton(8)) { // lowest position 
+    if(wristSetPosition == wrist_low  ) { // check wrist position 
       // do nothing (do not move elevator lower because wrist will be distroyed)
     } else {
-      elePosition = -4.786 ;// ball ground pickup
+      elePosition = 0;
+      //elePosition = -4.786 ;// ball ground pickup
     }
   } else if(buttonBoard.GetRawButton(3)) { // next lowest
-   /* if(wristSetPosition == wrist_low || wristSetPosition == wrist_mid) { // check wrist position 
+    /*if(wristSetPosition == wrist_low) { // check wrist position 
       // do nothing (do not move elevator lower because wrist will be distroyed)
     } else {
 
       elePosition = 2 ;//- zeroPoint; // drop until the limit switch is found
 
     }*/
-    elePosition = 53.857; // disk pickup / lowest deposit
-  } else if(buttonBoard.GetRawButton(2)) { // first position that is okay when the wrist is down
+   /* elePosition = 53.857; // disk pickup / lowest deposit
+  }
+  
+  else if(buttonBoard.GetRawButton(2)) { // first position that is okay when the wrist is down
     elePosition = 178.112;// level 2 disk drop
   } else if(buttonBoard.GetRawButton(1)) { 
     elePosition = 279.218 ;// level 3 disk drop
@@ -322,16 +309,16 @@ void Robot::RunElevator() {
     elePosition = 315.094 ;// level 3 ball shoot;
   }
   else if(buttonBoard.GetRawButton(4)){
-    elePosition = 4;
+    elePosition = 40;
 
-    if(eleActual = 4){
+    if(eleActual = 40){
       wristSetPosition = wrist_low;
     }
 
-    if(eleActual = 4 && wristMotor->GetSelectedSensorPosition() == 0){
+    if(eleActual = 40 ){//&& wristMotor->GetSelectedSensorPosition() == 0){
       elePosition = 0;
     }
-  }
+  }*/
 
   m_pidController.SetReference(elePosition, rev::ControlType::kPosition);
 
@@ -385,7 +372,7 @@ void Robot::RunShooter() {
 // ================================= END OF MAIN TELEOP FUNCTIONS ================================================== //
 // ULTILITY FUNCTIONS
 
-  void Robot::setNewWristPID(double p, double i, double d, double f){
+void Robot::setNewWristPID(double p, double i, double d, double f){
     wristMotor->Config_kF(kPIDLoopIdx, f, kTimeoutMs);
     wristMotor->Config_kP(kPIDLoopIdx, p, kTimeoutMs);
     wristMotor->Config_kI(kPIDLoopIdx, i, kTimeoutMs);
@@ -407,12 +394,9 @@ void Robot::RunShooter() {
 //LEDs
 
   void Robot::CollinsPartyPiece() {
-
-
-
     // shooter
 
-    if(mainJoystick.GetRawButton(5)){
+    /*if(mainJoystick.GetRawButton(5)){
 
       LED.Set(-0.57);
 
@@ -422,11 +406,11 @@ void Robot::RunShooter() {
 
       LED.Set(-0.15);
 
-    }
+    }*/
 
     // lifter
 
-    else if(mainJoystick.GetRawButton(4)){ 
+    /*else if(mainJoystick.GetRawButton(4)){ 
 
       LED.Set(-0.07);
 
@@ -436,11 +420,11 @@ void Robot::RunShooter() {
 
       LED.Set(-0.07);
 
-    }
+    }*/
 
     // elevator
 
-    else if(elevatorEncoder.GetVelocity() > 1 || elevatorEncoder.GetVelocity() < -1){
+    if(elevatorEncoder.GetVelocity() > 1 || elevatorEncoder.GetVelocity() < -1){
 
       LED.Set(-0.39);
 
@@ -483,21 +467,11 @@ void Robot::RunShooter() {
 
 
 /********************************************************************************************
-
  * This function is run if the robot is put it test mode. Good for testing ideas without 
-
  * messing with the teleop or autonomous modes. 
-
  * 
-
  * it is also called once every 20ms when enabled. 
-
  */ 
-
-
-
-
-
 void Robot::TestPeriodic() {}
 
 

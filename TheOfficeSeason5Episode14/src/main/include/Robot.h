@@ -1,69 +1,23 @@
 /*----------------------------------------------------------------------------*/
-
 /* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
-
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
-
 /* must be accompanied by the FIRST BSD license file in the root directory of */
-
 /* the project.                                                               */
-
 /*----------------------------------------------------------------------------*/
-
-
-
 #pragma once
-
-
-
 #include "frc/WPILib.h"
-
-
-
 #include <string>
-
-
-
 #include <frc/TimedRobot.h>
-
-
-
 #include <frc/smartdashboard/SendableChooser.h>
-
-
-
 #include <frc/smartdashboard/SmartDashboard.h>
-
-
-
-#include <frc/Talon.h>
-
-#include <frc/Victor.h>
-
+/*#include <frc/Talon.h>
+#include <frc/Victor.h>*/
 #include <frc/spark.h>
-
-
-
 #include <cameraserver/CameraServer.h>
-
-
-
 #include <wpi/raw_ostream.h>
-
-
-
 #include "rev/CANSparkMax.h"
-
-
-
 #include <frc/DigitalInput.h>
-
-
-
 #include <frc/encoder.h>
-
-
-
 #include "ctre/Phoenix.h"
 
 
@@ -84,9 +38,8 @@ class Robot : public frc::TimedRobot {
   void RunWrist();
   void RunElevator(); 
   void RunShooter();
+
   void CollinsPartyPiece();
-
-
   // ultil functions
   void setNewWristPID(double p, double i, double d, double f);
 
@@ -109,8 +62,8 @@ class Robot : public frc::TimedRobot {
 
   // *************************************
   // lifter setup
- VictorSPX * lifter1 = new VictorSPX(5);
- VictorSPX * lifter2 = new VictorSPX(6);
+  VictorSPX * lifter1 = new VictorSPX(5);
+  VictorSPX * lifter2 = new VictorSPX(6);
 
   // *************************************
   // elevator setup
@@ -138,17 +91,17 @@ class Robot : public frc::TimedRobot {
   double wristSetPosition = 1;
 
  // wrist PID vars
-  const float WRIST_kP = 0.08;
-  const float WRIST_kI = 0.1;
-  const float WRIST_kD = 0.6;
+  const float WRIST_kP = 0.035;
+  const float WRIST_kI = 0;
+  const float WRIST_kD = 0;
   const float WRIST_kF = 0;
 
   const int kPIDLoopIdx = 0;
   const int kTimeoutMs = 10;
   const float  wrist_low = 0;
-  const float  wrist_pickup = 0;
-  const float  wrist_mid = 4096 / 2;
-  const float  wrist_high =  4096;
+  const float  wrist_pickup = 4096/5;
+  const float  wrist_mid = 4096 / 4;
+  const float  wrist_high =  4096 / 3;
 
 
   // *************************************
@@ -159,18 +112,9 @@ class Robot : public frc::TimedRobot {
   //LEDs setup
   frc::Spark LED{5};
 
-
-
-
-
  private:
-
   frc::SendableChooser<std::string> m_chooser;
-
   const std::string kAutoNameDefault = "Default";
-
   const std::string kAutoNameCustom = "My Auto";
-
   std::string m_autoSelected;
-
 };
