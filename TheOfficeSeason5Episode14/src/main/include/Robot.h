@@ -31,7 +31,7 @@ class Robot : public frc::TimedRobot {
   void TeleopInit() override;
   void TeleopPeriodic() override;
   void TestPeriodic() override; 
-
+  
   // teleop function prototypes
   void RunDriveTrain();
   void RunLifter();
@@ -88,7 +88,7 @@ class Robot : public frc::TimedRobot {
   // *************************************
   // wrist setup
   TalonSRX * wristMotor = new TalonSRX(1);
-  double wristSetPosition = 1;
+ /* double wristSetPosition = 1;
 
  // wrist PID vars
   const float WRIST_kP = 0.035;
@@ -102,7 +102,7 @@ class Robot : public frc::TimedRobot {
   const float  wrist_pickup = 4096/5;
   const float  wrist_mid = 4096 / 4;
   const float  wrist_high =  4096 / 3;
-
+*/
 
   // *************************************
   //shooter setup

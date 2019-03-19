@@ -21,7 +21,7 @@ void Robot::RobotInit() {
   // *************************************
   // wrist setup
   
-  wristMotor->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0,0);
+ /* wristMotor->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0,0);
   wristMotor->SetSensorPhase(false);
   wristMotor->SetInverted(false);
 
@@ -35,7 +35,7 @@ void Robot::RobotInit() {
   wristMotor->ConfigPeakOutputForward(1);
   wristMotor->ConfigPeakOutputReverse(-1);
   
-
+*/
 
   // *************************************
   // Camera server setup
@@ -91,8 +91,8 @@ void Robot::RobotPeriodic() {}
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-   wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
-  wristSetPosition = 0;
+ // wristMotor->SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs); // reset wrist to zero
+  //wristSetPosition = 0;
 }
 
 
@@ -103,8 +103,8 @@ LED.Set(-0.99);
 driveTrain.DriveCartesian(mainJoystick.GetX(), mainJoystick.GetY(), mainJoystick.GetZ() *-1);
   //RunDriveTrain();
   RunElevator();
-  RunWrist();
-  RunShooter();
+  //RunWrist();
+  //RunShooter();
 
 
 }
@@ -210,7 +210,25 @@ lifter1->Set(ControlMode::PercentOutput, 1);
  */
 void Robot::RunWrist() {
   float elevatorActual = elevatorEncoder.GetPosition();
+  float wristPos;
+  float wristReal;
 
+ if(elevatorStick.GetRawButton(3)){
+    wristMotor->Set(ControlMode::PercentOutput,(0.001));
+    
+  }
+  else if(elevatorStick.GetRawButton(2)){
+    wristMotor->Set(ControlMode::PercentOutput,(-0.001));
+    
+  }
+  else{
+    wristMotor->Set(ControlMode::PercentOutput,(0));
+  }
+  
+/*if(elevatorStick.GetRawButton(1)){
+
+}
+else{
   if(elevatorStick.GetRawButton(3)) {
     wristSetPosition = wrist_high;
   }
@@ -218,15 +236,19 @@ void Robot::RunWrist() {
     wristSetPosition =  wrist_mid;
   }
   else if(elevatorStick.GetRawButton(1)){
-    wristSetPosition = wrist_pickup;
+    //wristSetPosition = wrist_pickup;
   }
-  else if(/*elevatorActual > 4 &&*/ buttonBoard.GetRawButton(7)) {
+  else if(buttonBoard.GetRawButton(7)) {
     wristSetPosition = wrist_low;
   }
+  wristMotor->Set(ControlMode::Position, wristSetPosition);
+}
+ */
 
   frc::SmartDashboard::PutNumber("Wrist / Actual Position", wristMotor->GetSelectedSensorPosition());
-  frc::SmartDashboard::PutNumber("Wrist / Set Position", wristSetPosition);
-  wristMotor->Set(ControlMode::Position, wristSetPosition);
+  //frc::SmartDashboard::PutNumber("Wrist / Set Position", wristSetPosition);
+  frc::SmartDashboard::PutNumber("Zaxis", elevatorStick.GetZ());
+  
   
 }
 
@@ -249,9 +271,10 @@ void Robot::RunWrist() {
  */
 
 void Robot::RunElevator() {
+  float eleActual = elevatorEncoder.GetPosition();
   double tmp = elevatorStick.GetY() * -1;
   float theth;
-  float eleActual = elevatorEncoder.GetPosition();
+  
 
   if(tmp > deadZone){
     theth = ((tmp - deadZone) * (1 / (1 - deadZone)));
@@ -265,20 +288,19 @@ void Robot::RunElevator() {
 
   //wristMotor->ConfigNominalOutputForward( 0.1); // drop the power down a little 
   //wristMotor->ConfigNominalOutputReverse(-0.1);
-  frc::SmartDashboard::PutNumber("J0ystick y", elevatorStick.GetY());
+  frc::SmartDashboard::PutNumber("J0ystick y",theth);
 
   //wristMotor->Set(ControlMode::PercentOutput, -elevatorStick.GetY());
 
-  
-    
-    if(elePosition > 315) {
+ /* if(elePosition > 315) {
       elePosition = 315;
-    }
-    if(elePosition < -5000 ) {
+  }
+  else if(elePosition < -5000 ) {
       elePosition = 0;
-    }
-    elePosition += theth / 2;
-
+  }
+  else {*/
+      elePosition += theth / 2;
+  
   /*if(buttonBoard.GetRawButton(8)) { // lowest position 
     if(wristSetPosition == wrist_low  ) { // check wrist position 
       // do nothing (do not move elevator lower because wrist will be distroyed)
@@ -373,7 +395,7 @@ void Robot::RunShooter() {
 // ULTILITY FUNCTIONS
 
 void Robot::setNewWristPID(double p, double i, double d, double f){
-    wristMotor->Config_kF(kPIDLoopIdx, f, kTimeoutMs);
+   /* wristMotor->Config_kF(kPIDLoopIdx, f, kTimeoutMs);
     wristMotor->Config_kP(kPIDLoopIdx, p, kTimeoutMs);
     wristMotor->Config_kI(kPIDLoopIdx, i, kTimeoutMs);
     wristMotor->Config_kD(kPIDLoopIdx, d, kTimeoutMs);
@@ -386,7 +408,7 @@ void Robot::setNewWristPID(double p, double i, double d, double f){
     frc::SmartDashboard::PutNumber("Wrist / p", p);
     frc::SmartDashboard::PutNumber("Wrist / i", i);
     frc::SmartDashboard::PutNumber("Wrist / d", d);
-    frc::SmartDashboard::PutNumber("Wrist / f", f);
+    frc::SmartDashboard::PutNumber("Wrist / f", f);*/
   }
 
 
