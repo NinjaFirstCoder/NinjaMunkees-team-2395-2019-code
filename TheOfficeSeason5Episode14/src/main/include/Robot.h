@@ -62,8 +62,7 @@ class Robot : public frc::TimedRobot {
 
   // *************************************
   // lifter setup
-  VictorSPX * lifter1 = new VictorSPX(5);
-  VictorSPX * lifter2 = new VictorSPX(6);
+   VictorSPX * lifter1 = new VictorSPX(6);
 
   // *************************************
   // elevator setup
@@ -85,6 +84,7 @@ class Robot : public frc::TimedRobot {
   double highLimit = 0;
   float deadZone = .25;
 
+  bool lastJoystickState = false;
   // *************************************
   // wrist setup
   TalonSRX * wristMotor = new TalonSRX(1);

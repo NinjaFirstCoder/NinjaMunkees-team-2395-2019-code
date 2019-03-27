@@ -136,7 +136,7 @@ void Robot::TeleopPeriodic() {
 driveTrain.DriveCartesian(mainJoystick.GetX(), mainJoystick.GetY(), mainJoystick.GetZ() *-1);
   //RunDriveTrain();
   RunElevator();
-  //RunLifter();
+  RunLifter();
   RunWrist();
   RunShooter();
   //CollinsPartyPiece();
@@ -170,33 +170,20 @@ void Robot::RunDriveTrain() {
  * to raise the robot to score the climb
  */
 void Robot::RunLifter() {
-  /*
-lifter1->Set(ControlMode::PercentOutput, 1);
-  if(mainJoystick.GetRawButton(4)){ // run the lifer forward 
+  
+  if(mainJoystick.GetRawButton(2)){
+    lifter1->Set(ControlMode::PercentOutput, -.25);
+  }
 
+  else if(mainJoystick.GetRawButton(4)){ // run the lifer forward 
     lifter1->Set(ControlMode::PercentOutput, 1);
-
-    lifter2->Set(ControlMode::PercentOutput, -1);
-
   }
-
-  else if(mainJoystick.GetRawButton(2)){ // run the lifer in reverse 
-
-    lifter1->Set(ControlMode::PercentOutput, -1);
-
-    lifter2->Set(ControlMode::PercentOutput, 1);
-
+  else if(mainJoystick.GetRawButton(1)){
+    lifter1->Set(ControlMode::PercentOutput, .25);
   }
-
-  else { // dont move the lifter 
-
+  else{
     lifter1->Set(ControlMode::PercentOutput, 0);
-
-    lifter2->Set(ControlMode::PercentOutput, 0);
-
   }
-
-*/
 
 }
 
@@ -271,7 +258,7 @@ else{
  */
 
 void Robot::RunElevator() {
-  float eleActual = elevatorEncoder.GetPosition();
+ /* float eleActual = elevatorEncoder.GetPosition();
   double tmp = elevatorStick.GetY() * -1;
   float theth;
   
@@ -299,7 +286,7 @@ void Robot::RunElevator() {
       elePosition = 0;
   }
   else {*/
-      elePosition += theth / 2;
+    //  elePosition += theth / 2;
   
   /*if(buttonBoard.GetRawButton(8)) { // lowest position 
     if(wristSetPosition == wrist_low  ) { // check wrist position 
@@ -342,15 +329,53 @@ void Robot::RunElevator() {
     }
   }*/
 
-  m_pidController.SetReference(elePosition, rev::ControlType::kPosition);
+  //m_pidController.SetReference(elePosition, rev::ControlType::kPosition);
 
-  frc::SmartDashboard::PutNumber("elevator output in percent", theth);
+  /*frc::SmartDashboard::PutNumber("elevator output in percent", theth);
   frc::SmartDashboard::PutNumber("Elevator / Set Position", elePosition);
   frc::SmartDashboard::PutNumber("Elevator / Actual Position", eleActual);
   frc::SmartDashboard::PutNumber("Elevator / zero Point", zeroPoint);
   frc::SmartDashboard::PutNumber("Elevator / t Set Position", elePosition * 4096);
   frc::SmartDashboard::PutNumber("Elevator / t Actual Position", eleActual);
   frc::SmartDashboard::PutNumber("Elevator / t zero Point", zeroPoint * 4096);
+*/
+
+
+  float eleActual = elevatorEncoder.GetPosition();
+  double tmp = elevatorStick.GetY() * -1;
+  float theth;
+
+  bool joystickIsPressed = false;
+  
+
+  if(tmp > deadZone){
+    theth = ((tmp - deadZone) * (1 / (1 - deadZone)));
+    joystickIsPressed = true;
+    lastJoystickState = true;
+  }
+  else if(tmp < - deadZone){
+    theth = ((tmp + deadZone) * (-1 / (-1 + deadZone)));
+    joystickIsPressed = true;
+    lastJoystickState = true;
+  }
+  else{
+    theth = 0;
+  }
+
+  if(joystickIsPressed) {
+    elevator.Set(theth);
+  } else if(lastJoystickState != joystickIsPressed) {
+    m_pidController.SetReference(eleActual, rev::ControlType::kPosition);
+  }
+
+  lastJoystickState = joystickIsPressed;
+
+
+
+
+
+
+
 }
 
 
